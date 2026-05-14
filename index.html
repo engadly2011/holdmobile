@@ -663,21 +663,26 @@ function doOrd(){
   if(!name||!rawPhone||!gov){alert('من فضلك اكمل الاسم والموبايل والمحافظة 🙏');return}
   const phone = rawPhone.replace(/[٠١٢٣٤٥٦٧٨٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d).toString()).replace(/[۰۱۲۳۴۵۶۷۸۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d).toString());
   if(!/^01[0-9]{9}$/.test(phone)){alert('رقم الموبايل لازم يبدأ بـ 01 ويكون 11 رقم');return}
+  const addr=document.getElementById('fa').value.trim();
   const btn=document.getElementById('subBtn');
   btn.disabled=true;
   btn.innerHTML='<span>⏳ جاري تأكيد الطلب...</span>';
   if(typeof fbq!=='undefined')fbq('track','Purchase',{value:PR[sq],currency:'EGP'});
-  const addr=document.getElementById('fa').value.trim();
   const payload = {
-    timestamp:new Date().toLocaleString('ar-EG'),
-    name,phone,gov,addr:addr||'—',
-    qty:String(sq),price:PR[sq]+' ج',
-    product:'حامل الموبايل 360° × '+sq
+    timestamp: new Date().toLocaleString('ar-EG'),
+    name:      name,
+    phone:     phone,
+    gov:       gov,
+    addr:      addr || '—',
+    qty:       String(sq),
+    price:     PR[sq] + ' ج',
+    product:   'حامل الموبايل 360° × ' + sq
   };
   // Method 1: fetch POST
   fetch(SHEET,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)}).catch(()=>{});
   // Method 2: GET fallback (guaranteed delivery)
-  const params = new URLSearchParams(payload);
+  // GET fallback
+  const params = new URLSearchParams(Object.entries(payload).map(([k,v])=>[k,String(v)]));
   new Image().src = SHEET + '?' + params.toString();
   setTimeout(()=>{
     document.getElementById('orderForm').style.display='none';
