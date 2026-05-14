@@ -267,7 +267,7 @@ footer strong{color:var(--org);font-weight:800}
 <!-- HERO -->
 <div class="hero">
   <div class="live-pill"><div class="dot"></div> +1,200 طلب تم تسليمه</div>
-  <h1>موبايلك بيوقع<br>وإيدك بتتعب؟ 😩<br><span class="hi">خلّص منهم دلوقتي! 🔥</span></h1>
+  <h1>موبايلك بيوقع<br>وإيدك بتتعب؟ 😩<br><span class="hi">تخلص منهم دلوقتي! 🔥</span></h1>
   <p class="hero-sub">حامل الموبايل المرن 360° — ثبّته على أي زاوية بدون إيدك. في السرير، المكتب، العربية، أي مكان.</p>
 
   <!-- PAIN CHIPS -->
@@ -517,7 +517,7 @@ footer strong{color:var(--org);font-weight:800}
       </div>
       <div class="fg">
         <label>رقم الموبايل <span>*</span></label>
-        <input type="tel" id="fp" placeholder="01XXXXXXXXX" dir="ltr" inputmode="numeric" maxlength="11" autocomplete="tel">
+        <input type="tel" id="fp" placeholder="01XXXXXXXXX" inputmode="tel" autocomplete="tel">
       </div>
       <div class="fg">
         <label>المحافظة <span>*</span></label>
@@ -658,23 +658,27 @@ setInterval(()=>{
 
 function doOrd(){
   const name=document.getElementById('fn').value.trim();
-  const phone=document.getElementById('fp').value.trim();
+  const rawPhone=document.getElementById('fp').value.trim();
   const gov=document.getElementById('fgov').value;
-  if(!name||!phone||!gov){alert('من فضلك اكمل الاسم والموبايل والمحافظة 🙏');return}
-  if(!/^01[0-9]{9}$/.test(phone)){alert('رقم الموبايل لازم يبدأ بـ 01 ويكون 11 رقم بالظبط');return}
+  if(!name||!rawPhone||!gov){alert('من فضلك اكمل الاسم والموبايل والمحافظة 🙏');return}
+  const phone = rawPhone.replace(/[٠١٢٣٤٥٦٧٨٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d).toString()).replace(/[۰۱۲۳۴۵۶۷۸۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d).toString());
+  if(!/^01[0-9]{9}$/.test(phone)){alert('رقم الموبايل لازم يبدأ بـ 01 ويكون 11 رقم');return}
   const btn=document.getElementById('subBtn');
   btn.disabled=true;
-  btn.innerHTML='<span>⏳ جاري إرسال الطلب...</span>';
+  btn.innerHTML='<span>⏳ جاري تأكيد الطلب...</span>';
   if(typeof fbq!=='undefined')fbq('track','Purchase',{value:PR[sq],currency:'EGP'});
   const addr=document.getElementById('fa').value.trim();
-  fetch(SHEET,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({
-      timestamp:new Date().toLocaleString('ar-EG'),
-      name,phone,gov,addr:addr||'—',
-      qty:String(sq),price:PR[sq]+' ج',
-      product:'حامل الموبايل 360° × '+sq
-    })
-  }).catch(()=>{});
+  const payload = {
+    timestamp:new Date().toLocaleString('ar-EG'),
+    name,phone,gov,addr:addr||'—',
+    qty:String(sq),price:PR[sq]+' ج',
+    product:'حامل الموبايل 360° × '+sq
+  };
+  // Method 1: fetch POST
+  fetch(SHEET,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)}).catch(()=>{});
+  // Method 2: GET fallback (guaranteed delivery)
+  const params = new URLSearchParams(payload);
+  new Image().src = SHEET + '?' + params.toString();
   setTimeout(()=>{
     document.getElementById('orderForm').style.display='none';
     document.getElementById('thanks').style.display='block';
